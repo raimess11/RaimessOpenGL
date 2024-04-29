@@ -1,0 +1,1 @@
+g++ -g -std=c++17 -I../include -L../lib *.cpp glad.c -lglfw3dll -o "C:\Users\rahma\STUDY\OpenGL\HelloOpenGL/bin/myprogram.exe"
