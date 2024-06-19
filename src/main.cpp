@@ -18,6 +18,7 @@ const GLuint SCREEN_HEIGHT = 640;
 //_setup variable
 GLFWwindow *window;
 unsigned int VAO;
+Shader shader;
 
 //_mainloop variable
 time_point
@@ -71,7 +72,6 @@ int _setup() {
     // vertex array object
     // Make sure Bind VAO before VBO
     glGenVertexArrays(1, &VAO);
-
     glBindVertexArray(VAO);
 
     // Vertex Buffer Object
@@ -80,10 +80,8 @@ int _setup() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     // Shader
-    Shader shader0("src/Shader/default.vert", "src/Shader/default.frag");
-    Shader shader("src/Shader/default.vert", "src/Shader/default.frag");
+    shader = std::move(Shader("src/Shader/default.vert", "src/Shader/default.frag"));
     shader.bind();
-    cerr << shader.ID;
 
     // config Vertex Attribut
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
@@ -105,7 +103,6 @@ void _render() {
     cout << "rendering at " << high_resolution_clock::now().time_since_epoch().count() << endl;
 
     // do render here
-    this_thread::sleep_for(2ms);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     // draw

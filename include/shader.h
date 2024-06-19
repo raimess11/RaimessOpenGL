@@ -10,15 +10,19 @@ using namespace std;
 
 string get_file_content(string path);
 
+
 class Shader {
 private:
     GLuint _ID;
 
 public:
     const GLuint &ID;
+    Shader();
     Shader(string vertexPath, string fragmentPath);
     void bind();
     ~Shader();
+    
+    Shader &operator=(Shader &&other) noexcept;
 };
 
 #endif // SHADER_CLASS_H

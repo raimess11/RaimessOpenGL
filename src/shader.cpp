@@ -14,6 +14,10 @@ string get_file_content(string path) {
     return "";
 }
 
+Shader::Shader() : ID(_ID){
+    _ID = 0;
+}
+
 Shader::Shader(string vertexPath, string fragmentPath) : ID(_ID) {
     string vertexFile = get_file_content(vertexPath);
     string fragmentFile = get_file_content(fragmentPath);
@@ -69,4 +73,13 @@ void Shader::bind() {
 
 Shader::~Shader() {
     glDeleteProgram(ID);
+}
+
+Shader& Shader::operator=(Shader&& other) noexcept {
+    // Move resources from 'other' to 'this'
+    _ID = other._ID;
+    
+    // ... move other resources ...
+    other._ID = 0; // Invalidate moved-from object
+    return *this;
 }
