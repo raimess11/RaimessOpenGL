@@ -7,6 +7,8 @@
 #include <string>
 #include <thread>
 
+#include <shader.h>
+
 using namespace std;
 using namespace chrono;
 
@@ -15,6 +17,7 @@ const GLuint SCREEN_HEIGHT = 640;
 
 //_setup variable
 GLFWwindow *window;
+unsigned int VAO;
 
 //_mainloop variable
 time_point
@@ -34,12 +37,18 @@ unsigned int VBO;
 
 //_terminate variable
 
-int _setup() {
+string readFile(string path) {
+    std::ifstream in(path);
+    std::string contents((std::istreambuf_iterator<char>(in)),
+                         std::istreambuf_iterator<char>());
+    in.close();
+    return contents;
+}
 
+int _setup() {
     auto output = freopen("output.txt", "w", stdout);
     auto error = freopen("error.txt", "w", stderr);
     cout << "file has ben created" << endl;
-    
 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -48,56 +57,42 @@ int _setup() {
 
     window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Raimess OpenGL", NULL, NULL);
     if (window == NULL) {
-        std::cout << "Failed to create GLFW window" << std::endl;
+        std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return 0;
     }
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+        std::cerr << "Failed to initialize GLAD" << std::endl;
         return 0;
     }
 
+    // vertex array object
+    // Make sure Bind VAO before VBO
+    glGenVertexArrays(1, &VAO);
+
+    glBindVertexArray(VAO);
+
+    // Vertex Buffer Object
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    // Open the input file named "input.txt"
-    ifstream inputFile("src/Shader/default.vert");
+    // Shader
+    Shader shader0("src/Shader/default.vert", "src/Shader/default.frag");
+    Shader shader("src/Shader/default.vert", "src/Shader/default.frag");
+    shader.bind();
+    cerr << shader.ID;
 
-    // Check if the file is successfully opened
-    if (!inputFile.is_open()) {
-        cerr << "Error opening the file!" << endl;
-        return 1;
-    }
-
-    string content;
-
-    string line; // Declare a string variable to store each
-                 // line of the file
-    // standard output stream
-    while (getline(inputFile, line)) {
-        // cout << line << endl; // Print the current line
-        content += line + "\n";
-    }
-
-    const char *vertexShaderSource = content.c_str();
-    cout << vertexShaderSource;
-
-    // Close the file
-    inputFile.close();
-
-    unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
+    // config Vertex Attribut
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
 
     return 1;
 }
 
 void _gamelogic() {
-    this_thread::sleep_for(2ms);
 }
 
 void _render() {
@@ -113,6 +108,8 @@ void _render() {
     this_thread::sleep_for(2ms);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+    // draw
+    glDrawArrays(GL_TRIANGLES, 0, 3);
     glfwSwapBuffers(window);
 }
 
@@ -127,15 +124,7 @@ void _mainloop() {
         _process_start_time = high_resolution_clock::now();
         elapsed_time = duration_cast<milliseconds>(_process_start_time.time_since_epoch() - _lates_process_time.time_since_epoch());
         _lates_process_time = _process_start_time;
-        // if (elapsed_time < 1000ms / fps) {
-        //     auto sleep_time = (1000ms / fps) - elapsed_time;
-        //     this_thread::sleep_for(sleep_time);
-        //     _process_start_time = high_resolution_clock::now();
-        //     cout << "sleep: " << sleep_time.count() << " ms at - " << high_resolution_clock::now().time_since_epoch().count() << endl;
-        // } else
-        //     cout << "sleep: " << 0 << " ms at - " << high_resolution_clock::now().time_since_epoch().count() << endl;
-        // call the process here
-        this_thread::sleep_for(2ms);
+
         _render();
         _gamelogic();
         _eventHandler();
